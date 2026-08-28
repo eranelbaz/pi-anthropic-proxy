@@ -13,7 +13,7 @@ pi packages add pi-anthropic-proxy
 Registers an `anthropic-proxy` provider, reading connection details from env vars:
 
 - `ANTHROPIC_BASE_URL` (default `http://localhost:3456`)
-- `ANTHROPIC_API_KEY` (default `dario`, not a real secret — the proxy is expected to run locally)
+- `ANTHROPIC_API_KEY` (required)
 
 Exposes:
 
