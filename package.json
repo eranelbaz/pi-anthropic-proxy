@@ -1,0 +1,38 @@
+{
+  "name": "pi-dario",
+  "version": "0.1.0",
+  "description": "Pi coding agent provider extension exposing a local Dario proxy with Claude Sonnet 5, Opus 5, and Haiku 4.5 models.",
+  "keywords": [
+    "pi-package",
+    "pi-coding-agent",
+    "pi-agent",
+    "provider",
+    "anthropic",
+    "claude",
+    "proxy"
+  ],
+  "license": "MIT",
+  "author": "eranelbaz",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eranelbaz/pi-dario.git"
+  },
+  "homepage": "https://github.com/eranelbaz/pi-dario#readme",
+  "bugs": {
+    "url": "https://github.com/eranelbaz/pi-dario/issues"
+  },
+  "files": [
+    "extensions",
+    "README.md",
+    "LICENSE"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ]
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module"
+}
