@@ -1,6 +1,6 @@
 export default function anthropicProxyExtension(pi) {
   pi.registerProvider("anthropic-proxy", {
-    baseUrl: process.env.ANTHROPIC_BASE_URL ?? "http://localhost:3456",
+    baseUrl: process.env.ANTHROPIC_BASE_URL ?? "",
     apiKey: process.env.ANTHROPIC_API_KEY ?? "",
     api: "anthropic-messages",
     models: [

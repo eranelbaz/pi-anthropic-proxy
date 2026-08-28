@@ -5,14 +5,14 @@ Pi coding agent provider extension for a local Anthropic-compatible proxy (Anthr
 ## Install
 
 ```
-pi packages add pi-anthropic-proxy
+pi install https://github.com/eranelbaz/pi-anthropic-proxy
 ```
 
 ## What it does
 
 Registers an `anthropic-proxy` provider, reading connection details from env vars:
 
-- `ANTHROPIC_BASE_URL` (default `http://localhost:3456`)
+- `ANTHROPIC_BASE_URL` (required)
 - `ANTHROPIC_API_KEY` (required)
 
 Exposes:
