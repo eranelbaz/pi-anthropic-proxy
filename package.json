@@ -1,7 +1,7 @@
 {
-  "name": "pi-dario",
+  "name": "pi-anthropic-proxy",
   "version": "0.1.0",
-  "description": "Pi coding agent provider extension exposing a local Dario proxy with Claude Sonnet 5, Opus 5, and Haiku 4.5 models.",
+  "description": "Pi coding agent provider extension exposing an Anthropic-compatible proxy (via ANTHROPIC_BASE_URL / ANTHROPIC_API_KEY) with Claude Sonnet 5, Opus 5, and Haiku 4.5 models.",
   "keywords": [
     "pi-package",
     "pi-coding-agent",
@@ -15,11 +15,11 @@
   "author": "eranelbaz",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eranelbaz/pi-dario.git"
+    "url": "git+https://github.com/eranelbaz/pi-anthropic-proxy.git"
   },
-  "homepage": "https://github.com/eranelbaz/pi-dario#readme",
+  "homepage": "https://github.com/eranelbaz/pi-anthropic-proxy#readme",
   "bugs": {
-    "url": "https://github.com/eranelbaz/pi-dario/issues"
+    "url": "https://github.com/eranelbaz/pi-anthropic-proxy/issues"
   },
   "files": [
     "extensions",
