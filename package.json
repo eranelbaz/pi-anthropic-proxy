@@ -1,6 +1,6 @@
 {
   "name": "pi-anthropic-proxy",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Pi coding agent provider extension exposing an Anthropic-compatible proxy (via ANTHROPIC_BASE_URL / ANTHROPIC_API_KEY) with Claude Sonnet 5, Opus 5, and Haiku 4.5 models.",
   "keywords": [
     "pi-package",

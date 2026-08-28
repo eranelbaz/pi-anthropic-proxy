@@ -5,7 +5,7 @@ Pi coding agent provider extension for a local Anthropic-compatible proxy (Anthr
 ## Install
 
 ```
-pi install https://github.com/eranelbaz/pi-anthropic-proxy
+pi install npm:pi-anthropic-proxy
 ```
 
 ## What it does
