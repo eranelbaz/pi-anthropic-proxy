@@ -1,3 +1,8 @@
+import { readFileSync } from "node:fs";
+import { mkdir, rename, writeFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { getAgentDir } from "@earendil-works/pi-coding-agent";
+
 const FALLBACK_MODELS = [
   {
     id: "claude-sonnet-5",
@@ -39,6 +44,30 @@ const FALLBACK_MODELS = [
 
 const MODELS_FETCH_TIMEOUT_MS = 10_000;
 const MAX_MODELS_PAGES = 20;
+const CACHE_PATH = join(getAgentDir(), "anthropic-proxy-models.json");
+
+// pi resolves the enabledModels scope before refreshModels runs, so the last
+// fetched list is cached to make newly released models selectable at startup.
+function readCachedModels() {
+  try {
+    const cached = JSON.parse(readFileSync(CACHE_PATH, "utf8"));
+    const models = Array.isArray(cached) ? cached.filter((model) => typeof model?.id === "string") : [];
+    return models.length > 0 ? models : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+async function writeCachedModels(models) {
+  try {
+    await mkdir(dirname(CACHE_PATH), { recursive: true });
+    const tmpPath = `${CACHE_PATH}.${process.pid}.tmp`;
+    await writeFile(tmpPath, JSON.stringify(models, null, 2));
+    await rename(tmpPath, CACHE_PATH);
+  } catch (error) {
+    console.error(`anthropic-proxy: model cache write failed: ${error.message}`);
+  }
+}
 
 function joinUrl(baseUrl, path) {
   return `${baseUrl.replace(/\/+$/, "")}${path}`;
@@ -71,7 +100,7 @@ export default function anthropicProxyExtension(pi) {
     baseUrl: process.env.ANTHROPIC_BASE_URL ?? "",
     apiKey: process.env.ANTHROPIC_API_KEY ?? "",
     api: "anthropic-messages",
-    models: FALLBACK_MODELS,
+    models: readCachedModels() ?? FALLBACK_MODELS,
     // /v1/models doesn't report cost/reasoning/input support, so FALLBACK_MODELS
     // fills in those fields for known ids (or generic defaults for unknown ones).
     refreshModels: async (context) => {
@@ -91,7 +120,7 @@ export default function anthropicProxyExtension(pi) {
       if (remoteModels.length === 0) return undefined;
 
       const fallbackById = new Map(FALLBACK_MODELS.map((model) => [model.id, model]));
-      return remoteModels.map((remote) => {
+      const models = remoteModels.map((remote) => {
         const fallback = fallbackById.get(remote.id);
         return {
           id: remote.id,
@@ -103,6 +132,8 @@ export default function anthropicProxyExtension(pi) {
           maxTokens: fallback?.maxTokens ?? remote.max_tokens ?? 64000,
         };
       });
+      await writeCachedModels(models);
+      return models;
     },
   });
 }
