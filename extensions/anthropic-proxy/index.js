@@ -46,6 +46,18 @@ const MODELS_FETCH_TIMEOUT_MS = 10_000;
 const MAX_MODELS_PAGES = 20;
 const CACHE_PATH = join(getAgentDir(), "anthropic-proxy-models.json");
 
+// Proxies like dario rebuild the body and drop budget-style `thinking`; only
+// `output_config.effort` survives, and without it they default to "high".
+// Adaptive mode makes pi send the effort mapped from its thinking level. Only
+// adaptive-capable ids (opus/sonnet/fable >= 4-6, as in dario's
+// supportsAdaptiveThinking) get it; older ones 400 on adaptive thinking.
+function withThinkingCompat(model) {
+  const m = model.id.match(/(?:opus|sonnet|fable)-(\d{1,2})\b(?:-(\d{1,2})\b)?/);
+  const major = Number(m?.[1]);
+  if (!m || major < 4 || (major === 4 && !(Number(m[2]) >= 6))) return model;
+  return { ...model, compat: { ...model.compat, forceAdaptiveThinking: true } };
+}
+
 // pi resolves the enabledModels scope before refreshModels runs, so the last
 // fetched list is cached to make newly released models selectable at startup.
 function readCachedModels() {
@@ -100,7 +112,7 @@ export default function anthropicProxyExtension(pi) {
     baseUrl: process.env.ANTHROPIC_BASE_URL ?? "",
     apiKey: process.env.ANTHROPIC_API_KEY ?? "",
     api: "anthropic-messages",
-    models: readCachedModels() ?? FALLBACK_MODELS,
+    models: (readCachedModels() ?? FALLBACK_MODELS).map(withThinkingCompat),
     // /v1/models doesn't report cost/reasoning/input support, so FALLBACK_MODELS
     // fills in those fields for known ids (or generic defaults for unknown ones).
     refreshModels: async (context) => {
@@ -133,7 +145,7 @@ export default function anthropicProxyExtension(pi) {
         };
       });
       await writeCachedModels(models);
-      return models;
+      return models.map(withThinkingCompat);
     },
   });
 }
