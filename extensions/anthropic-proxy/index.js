@@ -51,11 +51,23 @@ const CACHE_PATH = join(getAgentDir(), "anthropic-proxy-models.json");
 // Adaptive mode makes pi send the effort mapped from its thinking level. Only
 // adaptive-capable ids (opus/sonnet/fable >= 4-6, as in dario's
 // supportsAdaptiveThinking) get it; older ones 400 on adaptive thinking.
+// thinkingLevelMap mirrors pi's built-in Anthropic models: max from 4-6,
+// xhigh from 4-7, and fable cannot disable thinking.
 function withThinkingCompat(model) {
-  const m = model.id.match(/(?:opus|sonnet|fable)-(\d{1,2})\b(?:-(\d{1,2})\b)?/);
-  const major = Number(m?.[1]);
-  if (!m || major < 4 || (major === 4 && !(Number(m[2]) >= 6))) return model;
-  return { ...model, compat: { ...model.compat, forceAdaptiveThinking: true } };
+  const m = model.id.match(/(opus|sonnet|fable)-(\d{1,2})\b(?:-(\d{1,2})\b)?/);
+  if (!m) return model;
+  const version = Number(m[2]) * 100 + Number(m[3] ?? 0);
+  if (version < 406) return model;
+  return {
+    ...model,
+    thinkingLevelMap: {
+      ...(m[1] === "fable" && { off: null }),
+      ...(version >= 407 && { xhigh: "xhigh" }),
+      max: "max",
+      ...model.thinkingLevelMap,
+    },
+    compat: { ...model.compat, forceAdaptiveThinking: true },
+  };
 }
 
 // pi resolves the enabledModels scope before refreshModels runs, so the last
@@ -108,6 +120,15 @@ async function fetchRemoteModels(baseUrl, apiKey, signal) {
 }
 
 export default function anthropicProxyExtension(pi) {
+  // dario replaces `thinking` with adaptive, so "off" still thinks at its
+  // default effort ("high"); request the lowest effort instead.
+  pi.on("before_provider_request", (event, ctx) => {
+    const payload = event.payload;
+    if (!ctx.model?.compat?.forceAdaptiveThinking || ctx.model.provider !== "anthropic-proxy") return undefined;
+    if (payload?.thinking?.type !== "disabled" || payload.output_config?.effort) return undefined;
+    return { ...payload, output_config: { ...payload.output_config, effort: "low" } };
+  });
+
   pi.registerProvider("anthropic-proxy", {
     baseUrl: process.env.ANTHROPIC_BASE_URL ?? "",
     apiKey: process.env.ANTHROPIC_API_KEY ?? "",
